@@ -23,11 +23,13 @@ build:
 
 k3d-update: build k3d-load k3d-restart
 
+k3d-update-apply: build k3d-load k3d-apply
+
 k3d-load:
 	k3d image import -c local-cluster service-amd64:$(VERSION)
 
 k3d-apply:
-	cat zarf/k8s/base/service-pod/base-service.yaml | kubectl apply -f -
+	kustomize build zarf/k8s/k3d/service-deploy | kubectl apply -f -
 
 k3d-restart:
 	kubectl rollout restart deployment service-deploy --namespace=service-system
