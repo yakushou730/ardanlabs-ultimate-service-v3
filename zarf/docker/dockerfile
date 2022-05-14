@@ -1,0 +1,26 @@
+# Build the Go Binary
+FROM golang:1.18 as build
+ENV GCO_ENABLED 0
+ARG BUILD_REF
+
+# Copy tthe source code into the container
+COPY . /app
+
+# Build the service binary
+WORKDIR /app
+RUN go build -ldflags "-X main.build=${BUILD_REF}" -o service
+
+# Run the Go Binary in Alpine
+FROM alpine:3.15
+ARG BUILD_DATE
+ARG BUILD_REF
+COPY --from=build /app /app
+WORKDIR /app
+CMD ["./service"]
+
+LABEL org.opencontainers.image.created="${BUILD_DATE}" \
+      org.opencontainers.image.title="service-api" \
+      org.opencontainers.image.authors="Shou Tseng <yakushou730@gmail.com>" \
+      org.opencontainers.image.source="https://github.com/yakushou730/ardanlabs-ultimate-service-v3" \
+      org.opencontainers.image.revision="${BUILD_REF}" \
+      org.opoencontainers.image.vendor="yakushou730"

@@ -12,7 +12,7 @@ var (
 )
 
 func main() {
-	log.Println("starting service", build)
+	log.Println("Hello Shou, starting service", build)
 	defer log.Println("service ended")
 
 	shutdown := make(chan os.Signal, 1)
