@@ -2,7 +2,10 @@ package main
 
 import (
 	"errors"
+	"expvar"
 	"fmt"
+	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/app/services/sales-api/handlers"
+	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
@@ -83,6 +86,7 @@ func run(log *zap.SugaredLogger) error {
 
 	// ==================================
 	// App Starting
+
 	log.Infow("starting service", "version", build)
 	defer log.Infow("shutdown complete")
 
@@ -91,6 +95,21 @@ func run(log *zap.SugaredLogger) error {
 		return fmt.Errorf("generating config for output: %w", err)
 	}
 	log.Infow("startup", "config", out)
+
+	expvar.NewString("build").Set(build)
+
+	// ==================================
+	// Start Debug Service
+
+	log.Infow("startup", "status", "debug router started", "host", cfg.Web.DebugHost)
+
+	debugMux := handlers.DebugStandardLibraryMux()
+
+	go func() {
+		if err := http.ListenAndServe(cfg.Web.DebugHost, debugMux); err != nil {
+			log.Errorw("shutdown", "status", "debug router closed", cfg.Web.DebugHost, "ERROR", err)
+		}
+	}()
 
 	// ==================================
 
