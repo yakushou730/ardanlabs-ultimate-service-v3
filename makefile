@@ -58,4 +58,3 @@ k3d-describe:
 
 tidy:
 	go mod tidy
-	go mod vendor
