@@ -3,9 +3,10 @@
 package handlers
 
 import (
-	"encoding/json"
 	"expvar"
 	"github.com/dimfeld/httptreemux/v5"
+	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/app/services/sales-api/handlers/debug/checkgrp"
+	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/app/services/sales-api/handlers/v1/testgrp"
 	"go.uber.org/zap"
 	"net/http"
 	"net/http/pprof"
@@ -26,6 +27,21 @@ func DebugStandardLibraryMux() *http.ServeMux {
 	return mux
 }
 
+func DebugMux(build string, log *zap.SugaredLogger) http.Handler {
+	mux := DebugStandardLibraryMux()
+
+	// Register debug check endpoints
+	cgh := checkgrp.Handlers{
+		Build: build,
+		Log:   log,
+	}
+
+	mux.HandleFunc("/debug/readiness", cgh.Readiness)
+	mux.HandleFunc("/debug/liveness", cgh.Liveness)
+
+	return mux
+}
+
 type APIMuxConfig struct {
 	Shutdown chan os.Signal
 	Log      *zap.SugaredLogger
@@ -34,16 +50,10 @@ type APIMuxConfig struct {
 func APIMux(cfg APIMuxConfig) *httptreemux.ContextMux {
 	mux := httptreemux.NewContextMux()
 
-	h := func(w http.ResponseWriter, r *http.Request) {
-		status := struct {
-			Status string
-		}{
-			Status: "OK",
-		}
-		json.NewEncoder(w).Encode(status)
+	tgh := testgrp.Handlers{
+		Log: cfg.Log,
 	}
-
-	mux.Handle(http.MethodGet, "/test", h)
+	mux.Handle(http.MethodGet, "/v1/test", tgh.Test)
 
 	return mux
 }
