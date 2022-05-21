@@ -6,6 +6,7 @@ import (
 	"expvar"
 	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/app/services/sales-api/handlers/debug/checkgrp"
 	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/app/services/sales-api/handlers/v1/testgrp"
+	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/business/web/mid"
 	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/foundation/web"
 	"go.uber.org/zap"
 	"net/http"
@@ -52,6 +53,10 @@ func APIMux(cfg APIMuxConfig) *web.App {
 	// Construct the web.App which holds all routes
 	app := web.NewApp(
 		cfg.Shutdown,
+		mid.Logger(cfg.Log),
+		mid.Errors(cfg.Log),
+		mid.Metrics(),
+		mid.Panics(),
 	)
 
 	// Load the routes for the different versions of the API
