@@ -1,7 +1,8 @@
 package testgrp
 
 import (
-	"encoding/json"
+	"context"
+	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/foundation/web"
 	"go.uber.org/zap"
 	"net/http"
 )
@@ -12,14 +13,15 @@ type Handlers struct {
 }
 
 // Test handler is for development
-func (h Handlers) Test(w http.ResponseWriter, r *http.Request) {
+func (h Handlers) Test(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	status := struct {
 		Status string
 	}{
 		Status: "OK",
 	}
-	json.NewEncoder(w).Encode(status)
 
 	statusCode := http.StatusOK
 	h.Log.Infow("readiness", "statusCode", statusCode, "method", r.Method, "path", r.URL.Path, "remoteaddr", r.RemoteAddr)
+
+	return web.Respond(ctx, w, status, http.StatusOK)
 }
