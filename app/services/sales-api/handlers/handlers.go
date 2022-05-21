@@ -4,9 +4,9 @@ package handlers
 
 import (
 	"expvar"
-	"github.com/dimfeld/httptreemux/v5"
 	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/app/services/sales-api/handlers/debug/checkgrp"
 	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/app/services/sales-api/handlers/v1/testgrp"
+	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/foundation/web"
 	"go.uber.org/zap"
 	"net/http"
 	"net/http/pprof"
@@ -47,13 +47,13 @@ type APIMuxConfig struct {
 	Log      *zap.SugaredLogger
 }
 
-func APIMux(cfg APIMuxConfig) *httptreemux.ContextMux {
-	mux := httptreemux.NewContextMux()
+func APIMux(cfg APIMuxConfig) *web.App {
+	app := web.NewApp(cfg.Shutdown)
 
 	tgh := testgrp.Handlers{
 		Log: cfg.Log,
 	}
-	mux.Handle(http.MethodGet, "/v1/test", tgh.Test)
+	app.Handle(http.MethodGet, "/v1/test", tgh.Test)
 
-	return mux
+	return app
 }
