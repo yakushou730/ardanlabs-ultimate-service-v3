@@ -6,10 +6,18 @@ SHELL := /bin/bash
 # expvarmon -ports=":30191" -vars="build,requests,goroutines,errors,panics,mem:memstats.Alloc"
 # hey -m GET -c 100 -n 10000 http://localhost:30190/v1/test
 
+# To generate a private/public key PEM file
+# openssl genpkey -algorithm RSA -out private.pem -pkeyopt rsa_keygen_bits:2048
+# openssl rsa -pubout -in private.pem -out public.pem
+# ./admin genkey
+
 # ==================================================================
 
 run:
 	go run app/services/sales-api/main.go | go run app/tooling/logfmt/main.go
+
+admin:
+	go run app/tooling/admin/main.go
 
 # ==================================================================
 # Building containers
