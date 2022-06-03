@@ -11,6 +11,10 @@ SHELL := /bin/bash
 # openssl rsa -pubout -in private.pem -out public.pem
 # ./admin genkey
 
+# Testing Auth
+# curl -il http://localhost:30190/v1/testauth
+# curl -il -H "Authorization: Bearer wrong-test-token" http://localhost:30190/v1/testauth
+
 # ==================================================================
 
 run:
@@ -18,6 +22,14 @@ run:
 
 admin:
 	go run app/tooling/admin/main.go
+
+
+# ==================================================================
+# Running tests within the local computer
+
+test:
+	go test ./... -count=1
+	staticcheck -checks=all ./...
 
 # ==================================================================
 # Building containers
