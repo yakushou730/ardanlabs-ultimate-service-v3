@@ -76,10 +76,10 @@ func run(log *zap.SugaredLogger) error {
 			ActiveKID  string `conf:"default:key-id"`
 		}
 		DB struct {
-			User         string `conf:"default:postgres"`
-			Password     string `conf:"default:postgres,mask"`
-			Host         string `conf:"default:localhost"`
-			Name         string `conf:"default:0"`
+			User         string `conf:"default:root"`
+			Password     string `conf:"default:secret,mask"`
+			Host         string `conf:"default:local-postgresql.default.svc:5432"`
+			Name         string `conf:"default:sales_dev"`
 			MaxIdleConns int    `conf:"default:0"`
 			MaxOpenConns int    `conf:"default:0"`
 			DisableTLS   bool   `conf:"default:true"`
@@ -160,7 +160,7 @@ func run(log *zap.SugaredLogger) error {
 
 	log.Infow("startup", "status", "debug router started", "host", cfg.Web.DebugHost)
 
-	debugMux := handlers.DebugMux(build, log)
+	debugMux := handlers.DebugMux(build, log, db)
 
 	go func() {
 		if err := http.ListenAndServe(cfg.Web.DebugHost, debugMux); err != nil {
@@ -180,6 +180,7 @@ func run(log *zap.SugaredLogger) error {
 		Shutdown: shutdown,
 		Log:      log,
 		Auth:     authCred,
+		DB:       db,
 	})
 
 	api := http.Server{
