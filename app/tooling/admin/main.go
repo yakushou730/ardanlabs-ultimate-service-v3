@@ -238,7 +238,7 @@ func seed() error {
 	cfg := database.Config{
 		User:         "root",
 		Password:     "secret",
-		Host:         "localhost:30001",
+		Host:         "local-postgresql.default.svc:5432", // "localhost:30001",
 		Name:         "sales_dev",
 		MaxIdleConns: 0,
 		MaxOpenConns: 0,
