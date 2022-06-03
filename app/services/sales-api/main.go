@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/app/services/sales-api/handlers"
 	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/business/sys/auth"
+	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/business/sys/database"
 	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/foundation/keystore"
 	"net/http"
 	"os"
@@ -74,6 +75,15 @@ func run(log *zap.SugaredLogger) error {
 			KeysFolder string `conf:"default:zarf/keys/"`
 			ActiveKID  string `conf:"default:key-id"`
 		}
+		DB struct {
+			User         string `conf:"default:postgres"`
+			Password     string `conf:"default:postgres,mask"`
+			Host         string `conf:"default:localhost"`
+			Name         string `conf:"default:0"`
+			MaxIdleConns int    `conf:"default:0"`
+			MaxOpenConns int    `conf:"default:0"`
+			DisableTLS   bool   `conf:"default:true"`
+		}
 	}{
 		Version: conf.Version{
 			SVN:  build,
@@ -121,6 +131,29 @@ func run(log *zap.SugaredLogger) error {
 	if err != nil {
 		return fmt.Errorf("conostructing auth: %w", err)
 	}
+
+	// ==================================
+	// Database Support
+
+	// Create connectivity to the  database
+	log.Infow("startup", "status", "initializing database support", "host", cfg.DB.Host)
+
+	db, err := database.Open(database.Config{
+		User:         cfg.DB.User,
+		Password:     cfg.DB.Password,
+		Host:         cfg.DB.Host,
+		Name:         cfg.DB.Name,
+		MaxIdleConns: cfg.DB.MaxIdleConns,
+		MaxOpenConns: cfg.DB.MaxOpenConns,
+		DisableTLS:   cfg.DB.DisableTLS,
+	})
+	if err != nil {
+		return fmt.Errorf("connecting to db: %w", err)
+	}
+	defer func() {
+		log.Infow("shutdown", "status", "stopping database support", "host", cfg.DB.Host)
+		db.Close()
+	}()
 
 	// ==================================
 	// Start Debug Service
