@@ -48,7 +48,7 @@ func New(activeKID string, keyLookup KeyLookup) (*Auth, error) {
 		if !ok {
 			return nil, errors.New("user token key id (kid) must be string")
 		}
-		return keyLookup.PublicKey(kidID), nil
+		return keyLookup.PublicKey(kidID)
 	}
 
 	// Create the token parser to use. The algorithm used to sign the JWT must be
