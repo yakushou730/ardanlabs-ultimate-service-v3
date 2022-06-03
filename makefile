@@ -62,6 +62,8 @@ k3d-apply:
 
 k3d-restart:
 	kubectl rollout restart deployment sales-deploy --namespace=sales-system
+#	kustomize build zarf/k8s/kind/database-pod | kubectl apply -f -
+#	kubectl wait --namespace=database-system --timeout=120s --for=condition=Available deployment/database-pod
 
 k3d-status:
 	kubectl get nodes -o wide
@@ -70,6 +72,9 @@ k3d-status:
 
 k3d-status-sales:
 	kubectl get pods -o wide --watch -n sales-system
+
+k3d-status-db:
+	kubectl get pods -o wide --watch -n default
 
 k3d-logs:
 	kubectl logs -l app=sales --all-containers=true -f --tail=100 | go run app/tooling/logfmt/main.go
