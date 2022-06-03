@@ -230,5 +230,34 @@ func migrate() error {
 	}
 
 	fmt.Println("migrations complete")
+	return seed()
+}
+
+// Seed loads test data into the database.
+func seed() error {
+	cfg := database.Config{
+		User:         "root",
+		Password:     "secret",
+		Host:         "localhost:30001",
+		Name:         "sales_dev",
+		MaxIdleConns: 0,
+		MaxOpenConns: 0,
+		DisableTLS:   true,
+	}
+
+	db, err := database.Open(cfg)
+	if err != nil {
+		return fmt.Errorf("connect database: %w", err)
+	}
+	defer db.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := schema.Seed(ctx, db); err != nil {
+		return fmt.Errorf("seed database: %w", err)
+	}
+
+	fmt.Println("seed data complete")
 	return nil
 }
