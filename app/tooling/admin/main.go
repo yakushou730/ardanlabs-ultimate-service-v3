@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -8,6 +9,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/business/data/schema"
+	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/business/sys/database"
 	"io"
 	"os"
 	"time"
@@ -15,7 +18,8 @@ import (
 
 func main() {
 	//err := genKey()
-	err := genToken()
+	//err := genToken()
+	err := migrate()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -197,5 +201,63 @@ func genKey() error {
 
 	fmt.Println("private and public key files generated")
 
+	return nil
+}
+
+// Migrate creates the schema in the database.
+func migrate() error {
+	cfg := database.Config{
+		User:         "root",
+		Password:     "secret",
+		Host:         "localhost:30001",
+		Name:         "sales_dev",
+		MaxIdleConns: 0,
+		MaxOpenConns: 0,
+		DisableTLS:   true,
+	}
+
+	db, err := database.Open(cfg)
+	if err != nil {
+		return fmt.Errorf("connect database: %w", err)
+	}
+	defer db.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := schema.Migrate(ctx, db); err != nil {
+		return fmt.Errorf("migrate database: %w", err)
+	}
+
+	fmt.Println("migrations complete")
+	return seed()
+}
+
+// Seed loads test data into the database.
+func seed() error {
+	cfg := database.Config{
+		User:         "root",
+		Password:     "secret",
+		Host:         "local-postgresql.default.svc:5432", // "localhost:30001",
+		Name:         "sales_dev",
+		MaxIdleConns: 0,
+		MaxOpenConns: 0,
+		DisableTLS:   true,
+	}
+
+	db, err := database.Open(cfg)
+	if err != nil {
+		return fmt.Errorf("connect database: %w", err)
+	}
+	defer db.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := schema.Seed(ctx, db); err != nil {
+		return fmt.Errorf("seed database: %w", err)
+	}
+
+	fmt.Println("seed data complete")
 	return nil
 }
