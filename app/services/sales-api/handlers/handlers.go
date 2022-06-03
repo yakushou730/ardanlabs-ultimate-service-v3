@@ -4,6 +4,7 @@ package handlers
 
 import (
 	"expvar"
+	"github.com/jmoiron/sqlx"
 	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/app/services/sales-api/handlers/debug/checkgrp"
 	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/app/services/sales-api/handlers/v1/testgrp"
 	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/business/sys/auth"
@@ -29,13 +30,14 @@ func DebugStandardLibraryMux() *http.ServeMux {
 	return mux
 }
 
-func DebugMux(build string, log *zap.SugaredLogger) http.Handler {
+func DebugMux(build string, log *zap.SugaredLogger, db *sqlx.DB) http.Handler {
 	mux := DebugStandardLibraryMux()
 
 	// Register debug check endpoints
 	cgh := checkgrp.Handlers{
 		Build: build,
 		Log:   log,
+		DB:    db,
 	}
 
 	mux.HandleFunc("/debug/readiness", cgh.Readiness)
@@ -48,6 +50,7 @@ type APIMuxConfig struct {
 	Shutdown chan os.Signal
 	Log      *zap.SugaredLogger
 	Auth     *auth.Auth
+	DB       *sqlx.DB
 }
 
 func APIMux(cfg APIMuxConfig) *web.App {
