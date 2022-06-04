@@ -5,20 +5,24 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
-	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/foundation/web"
-	"go.uber.org/zap"
 	"net/url"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
+	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/foundation/web"
+	"go.uber.org/zap"
 )
 
 // Set of error variables for CRUD operations.
 var (
-	ErrDBNotFound        = errors.New("not found")
-	ErrDBDuplicatedEntry = errors.New("duplicated entry")
+	ErrDBNotFound            = errors.New("not found")
+	ErrDBDuplicatedEntry     = errors.New("duplicated entry")
+	ErrInvalidID             = errors.New("ID is not in its proper form")
+	ErrForbidden             = errors.New("attempted action is not allowed")
+	ErrAuthenticationFailure = errors.New("authentication failed")
 )
 
 // Config is the required properties to use the database.
