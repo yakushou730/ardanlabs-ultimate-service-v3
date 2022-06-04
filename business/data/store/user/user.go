@@ -67,7 +67,7 @@ func (s Store) Create(ctx context.Context, nu NewUser, now time.Time) (User, err
 }
 
 // Update replaces a use document in the database
-func (s Store) update(ctx context.Context, userID string, uu UpdateUser, now time.Time) error {
+func (s Store) Update(ctx context.Context, userID string, uu UpdateUser, now time.Time) error {
 	if err := validate.CheckID(userID); err != nil {
 		return database.ErrInvalidID
 	}
