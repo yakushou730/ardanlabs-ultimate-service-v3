@@ -132,9 +132,9 @@ func (s Store) Delete(ctx context.Context, claims auth.Claims, userID string) er
 	}
 
 	data := struct {
-		userID string `db:"user_id"`
+		UserID string `db:"user_id"`
 	}{
-		userID: userID,
+		UserID: userID,
 	}
 
 	const q = `
