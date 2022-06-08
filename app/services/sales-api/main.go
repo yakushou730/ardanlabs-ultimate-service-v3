@@ -5,10 +5,6 @@ import (
 	"errors"
 	"expvar"
 	"fmt"
-	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/app/services/sales-api/handlers"
-	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/business/sys/auth"
-	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/business/sys/database"
-	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/foundation/keystore"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,12 +12,18 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/foundation/logger"
+
+	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/app/services/sales-api/handlers"
+	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/business/sys/auth"
+	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/business/sys/database"
+	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/foundation/keystore"
+
 	"github.com/ardanlabs/conf"
 	"go.uber.org/automaxprocs/maxprocs"
 
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 /*
@@ -34,7 +36,7 @@ var (
 
 func main() {
 	// Construct the application logger
-	log, err := initLogger("SALES-API")
+	log, err := logger.New("SALES-API")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -223,21 +225,4 @@ func run(log *zap.SugaredLogger) error {
 	}
 
 	return nil
-}
-
-func initLogger(service string) (*zap.SugaredLogger, error) {
-	config := zap.NewProductionConfig()
-	config.OutputPaths = []string{"stdout"}
-	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	config.DisableStacktrace = true
-	config.InitialFields = map[string]interface{}{
-		"service": service,
-	}
-
-	log, err := config.Build()
-	if err != nil {
-		return nil, err
-	}
-
-	return log.Sugar(), nil
 }
