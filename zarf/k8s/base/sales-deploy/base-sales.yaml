@@ -25,6 +25,11 @@ spec:
           image: sales-api-image
           command: ["./admin"]
       containers:
+        - name: zipkin
+          image: openzipkin
+          ports:
+            - name: zipkin
+              containerPort: 9411
         - name: sales-api
           image: sales-api-image
           ports:
@@ -84,6 +89,9 @@ spec:
     - name: sales-api-debug
       port: 4000
       targetPort: sales-api-debug
+    - name: zipkin
+      port: 9411
+      targetPort: zipkin
 ---
 apiVersion: v1
 kind: Service
@@ -105,3 +113,7 @@ spec:
       port: 4000
       protocol: TCP
       targetPort: 4000
+    - name: 30192-9411
+      nodePort: 30192
+      port: 9411
+      protocol: TCP

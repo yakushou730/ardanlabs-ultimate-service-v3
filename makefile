@@ -87,6 +87,9 @@ k3d-status-db:
 k3d-logs:
 	kubectl logs -l app=sales --all-containers=true -f --tail=100 | go run app/tooling/logfmt/main.go
 
+k3d-logs-sales:
+	kubectl logs -l app=sales --all-containers=true -f --tail=100 | go run app/tooling/logfmt/main.go -service=SALES-API
+
 k3d-describe:
 	kubectl describe pod -l app=sales
 
