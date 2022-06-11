@@ -4,11 +4,17 @@ package tests
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"fmt"
 	"io"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/foundation/keystore"
+
+	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/business/sys/auth"
 
 	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/foundation/logger"
 
@@ -114,4 +120,42 @@ func StringPointer(s string) *string {
 // useful in some tests.
 func IntPointer(i int) *int {
 	return &i
+}
+
+// Test owns state for running and shutting down tests.
+type Test struct {
+	DB       *sqlx.DB
+	Log      *zap.SugaredLogger
+	Auth     *auth.Auth
+	Teardown func()
+
+	t *testing.T
+}
+
+// NewIntegration creates a database, seeds it, constructs an authenticator.
+func NewIntegration(t *testing.T, dbc DBContainer) *Test {
+	log, db, teardown := NewUnit(t, dbc)
+
+	// Create RSA keys to enable authentication in our service.
+	keyID := "4754d86b-7a6d-4df5-9c65-224741361492"
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Build an authenticator using this private key and id for the key store.
+	auth, err := auth.New(keyID, keystore.NewMap(map[string]*rsa.PrivateKey{keyID: privateKey}))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	test := Test{
+		DB:       db,
+		Log:      log,
+		Auth:     auth,
+		t:        t,
+		Teardown: teardown,
+	}
+
+	return &test
 }
