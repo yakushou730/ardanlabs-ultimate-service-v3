@@ -4,16 +4,19 @@ package handlers
 
 import (
 	"expvar"
+	"net/http"
+	"net/http/pprof"
+	"os"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/app/services/sales-api/handlers/debug/checkgrp"
-	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/app/services/sales-api/handlers/v1/testgrp"
+	v1TestGrp "github.com/yakushou730/ardanlabs-ultimate-serice-v3/app/services/sales-api/handlers/v1/testgrp"
+	v1UserGrp "github.com/yakushou730/ardanlabs-ultimate-serice-v3/app/services/sales-api/handlers/v1/usergrp"
+	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/business/core/user"
 	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/business/sys/auth"
 	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/business/web/mid"
 	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/foundation/web"
 	"go.uber.org/zap"
-	"net/http"
-	"net/http/pprof"
-	"os"
 )
 
 func DebugStandardLibraryMux() *http.ServeMux {
@@ -74,9 +77,24 @@ func APIMux(cfg APIMuxConfig) *web.App {
 func v1(app *web.App, cfg APIMuxConfig) {
 	const version = "v1"
 
-	tgh := testgrp.Handlers{
+	tgh := v1TestGrp.Handlers{
 		Log: cfg.Log,
 	}
 	app.Handle(http.MethodGet, version, "/test", tgh.Test)
 	app.Handle(http.MethodGet, version, "/testauth", tgh.Test, mid.Authenticate(cfg.Auth), mid.Authorize("ADMIN"))
+
+	authen := mid.Authenticate(cfg.Auth)
+	admin := mid.Authorize(auth.RoleAdmin)
+
+	// Register user management and authentication endpoints.
+	ugh := v1UserGrp.Handlers{
+		User: user.NewCore(cfg.Log, cfg.DB),
+		Auth: cfg.Auth,
+	}
+	app.Handle(http.MethodGet, version, "/users/token", ugh.Token)
+	app.Handle(http.MethodGet, version, "/users/:page/:rows", ugh.Query, authen, admin)
+	app.Handle(http.MethodGet, version, "/users/:id", ugh.QueryByID, authen)
+	app.Handle(http.MethodPost, version, "/users", ugh.Create, authen, admin)
+	app.Handle(http.MethodPut, version, "/users/:id", ugh.Update, authen, admin)
+	app.Handle(http.MethodDelete, version, "/users/:id", ugh.Delete, authen, admin)
 }
