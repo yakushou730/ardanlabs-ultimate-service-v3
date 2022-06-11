@@ -12,6 +12,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/business/data/store/user"
+
 	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/foundation/keystore"
 
 	"github.com/yakushou730/ardanlabs-ultimate-serice-v3/business/sys/auth"
@@ -158,4 +160,22 @@ func NewIntegration(t *testing.T, dbc DBContainer) *Test {
 	}
 
 	return &test
+}
+
+// Token generates an authenticated token for a user.
+func (test *Test) Token(email, pass string) string {
+	test.t.Log("Generating token for test ...")
+
+	store := user.NewStore(test.Log, test.DB)
+	claims, err := store.Authenticate(context.Background(), time.Now(), email, pass)
+	if err != nil {
+		test.t.Fatal(err)
+	}
+
+	token, err := test.Auth.GenerateToken(claims)
+	if err != nil {
+		test.t.Fatal(err)
+	}
+
+	return token
 }
